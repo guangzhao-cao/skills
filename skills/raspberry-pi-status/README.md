@@ -35,7 +35,7 @@ The Host and container tests cover sysfs temperature and throttling, system-visi
 Install from GitHub with a compatible Agent Skills installer:
 
 ```sh
-npx skills add guangzhao-cao/raspberry-pi-status
+npx skills add guangzhao-cao/skills --skill raspberry-pi-status
 ```
 
 Then ask the Agent, for example:
