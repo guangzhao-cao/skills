@@ -2,127 +2,74 @@
 
 A small, portable, read-only Agent Skill for inspecting Raspberry Pi system health on Linux.
 
-The skill collects a one-time system snapshot as stable JSON, then guides a compatible AI Agent to explain the result in the user's language. It is Agent-agnostic and does not depend on Hermes, Codex, Claude Code, or another vendor-specific API.
+Ask your AI Agent to check your Raspberry Pi. The skill collects its current status and explains the results in your language.
 
 ## Features
 
-- Raspberry Pi model and hardware identity
-- Linux distribution, architecture, and kernel
-- Uptime and 1/5/15-minute load average
-- Visible CPUs plus cgroup quota and CPU-set constraints
-- System-visible and cgroup memory
-- Root filesystem capacity and usage
+- Raspberry Pi model, operating system, and kernel
+- Uptime, CPU count, and system load
+- Available memory and root filesystem space
 - CPU/SoC temperature
-- Raspberry Pi throttling and undervoltage state through Linux firmware sysfs or optional `vcgencmd`
-- Conservative container detection with per-metric scope
-- Graceful degradation when an interface or optional command is unavailable
+- Throttling and undervoltage status
+- Container-aware reporting that distinguishes container data from host data
 
 ## Supported environments
 
-v0.1 targets Raspberry Pi hardware running Linux, including Raspberry Pi OS, Debian, Ubuntu, Alpine, and other common Linux distributions. Other Linux hardware receives a best-effort generic report. Non-Linux operating systems receive a structured unsupported result.
+Designed for Raspberry Pi 3, 4, 5, and Zero families running Linux, including Raspberry Pi OS, Debian, Ubuntu, and Alpine. Other Linux hardware receives a best-effort generic report. Non-Linux systems are not supported.
 
-The collector is designed for Raspberry Pi 3, 4, 5, and Zero families, but compatibility claims will distinguish design intent from environments tested on real hardware.
+Tested environments:
 
-### Tested environments
+- Raspberry Pi 4 Model B Rev 1.4 running Ubuntu 24.04.4 LTS
+- A Docker container on that Raspberry Pi running Debian 13
 
-- Raspberry Pi 4 Model B Rev 1.4, Ubuntu 24.04.4 LTS, Linux 6.8, ARM64, cgroup v2
-- Docker container on the same Host, Debian 13 user space, 2-CPU quota, and 4 GiB memory limit
+Other Raspberry Pi models and distributions have not yet been verified on real hardware.
 
-The Host and container tests cover sysfs temperature and throttling, system-visible versus cgroup memory, CPU quota and CPU-set reporting, container root filesystem scope, and Docker detection. Other Raspberry Pi models and Linux distributions are designed targets but are not yet claimed as tested.
+## Install and use
 
-## Install
-
-Install from GitHub with a compatible Agent Skills installer:
+Install with a compatible Agent Skills installer:
 
 ```sh
 npx skills add guangzhao-cao/skills --skill raspberry-pi-status
 ```
 
-Then ask the Agent, for example:
+Then ask the Agent:
 
 - “Is my Raspberry Pi healthy?”
 - “What is my Raspberry Pi temperature?”
 - “How much memory is available?”
 - “Is the root filesystem running out of space?”
 
-## Run the collector directly
+The Agent needs command access to the Linux environment you want to inspect.
 
-From the skill directory:
+## Example report
 
-```sh
-sh scripts/status.sh
-```
+An illustrative report with sample values, not a live measurement:
 
-stdout contains one JSON document using schema version `1`. The interface intentionally favors stable Agent parsing over terminal-oriented formatting. Values use base units such as bytes and seconds; the Agent formats them for people.
+> **Observed health: Normal — Assessment coverage: Partial**
+>
+> No issue was found in the available data, but the check could not assess power or throttling status.
+>
+> - System: Raspberry Pi 4, Ubuntu, running for 3 days
+> - CPU: 4 cores; 1/5/15-minute load averages of 0.24 / 0.18 / 0.15
+> - Memory: 2.5 GiB available out of 4 GiB
+> - Root filesystem: 42% used, 18 GiB available
+> - Temperature: 48°C
+> - Throttling and undervoltage: unavailable in this environment
 
-Example excerpt:
+## Limitations
 
-```json
-{
-  "schema_version": 1,
-  "supported": true,
-  "hardware": {
-    "is_raspberry_pi": true,
-    "model": "Raspberry Pi 4 Model B Rev 1.5"
-  },
-  "runtime": {
-    "environment": "container",
-    "confidence": "high"
-  }
-}
-```
-
-See [`references/metrics.md`](references/metrics.md) for field semantics, scope, thresholds, and throttling bit meanings.
-
-## Container behavior
-
-A container can expose a mixture of Host-visible and container-specific data. For example, `/proc/meminfo` may show broader system memory while cgroup files describe the Agent's effective memory limit. The container root filesystem usually does not represent the Raspberry Pi Host root filesystem.
-
-The skill therefore labels data as `host`, `container`, or `unknown` and requires the Agent to warn:
-
-> Some metrics may describe the Agent container rather than the Raspberry Pi host.
-
-v0.1 does not use privileged containers, the Docker socket, custom Host `/proc` or `/sys` mounts, or SSH callbacks to bypass isolation.
+- When the Agent runs in a container, some readings may describe the container rather than the whole Raspberry Pi. The report notes these limits.
+- Temperature, throttling, or undervoltage readings may be unavailable on some systems. Missing readings are reported as unavailable, not assumed healthy.
+- Each check is a current snapshot, not continuous monitoring or a guarantee that the entire system is healthy.
+- The skill does not inspect network connectivity, individual processes or services, fan status, or drive health.
 
 ## Safety
 
-The collector is strictly read-only. It does not install dependencies, use `sudo`, modify files or permissions, manage packages or services, kill processes, delete data, reboot, or shut down the system. Missing metrics remain unavailable rather than triggering a repair or permission change.
-
-The workflow is:
-
-```text
-Observe → Collect → Interpret → Report
-```
-
-It is not an automatic remediation tool.
-
-## Known limitations
-
-- Container detection is heuristic and cannot prove that a runtime has a complete Host view.
-- `vcgencmd` is optional and may be absent or inaccessible in containers.
-- Thermal sensor names vary; unrecognized zones are not reported as CPU temperature.
-- v0.1 does not collect network state, instantaneous CPU usage, processes, services, storage devices, fan state, Wi-Fi, SMART data, or historical metrics.
-- Non-Linux operating systems are not supported.
+The skill only reads system status. It does not modify the system, install dependencies, or automatically fix problems.
 
 ## Development
 
-Run the smoke test:
-
-```sh
-sh tests/smoke.sh
-```
-
-Run ShellCheck when available:
-
-```sh
-shellcheck -s sh \
-  scripts/status.sh \
-  tests/smoke.sh \
-  tests/fixtures/mock-linux-bin/uname \
-  tests/fixtures/mock-linux-bin/vcgencmd
-```
-
-The runtime collector has no Python dependency. The development smoke test uses Python's standard library only to validate JSON.
+See [the development guide](CONTRIBUTING.md) for running the collector directly, understanding its output, and running tests.
 
 ## License
 

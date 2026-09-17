@@ -20,14 +20,12 @@ jobs:
           sudo apt-get install --yes shellcheck
 
       - name: Run ShellCheck
-        working-directory: skills/raspberry-pi-status
         run: >-
           shellcheck -s sh
-          scripts/status.sh
-          tests/smoke.sh
-          tests/fixtures/mock-linux-bin/uname
-          tests/fixtures/mock-linux-bin/vcgencmd
+          skills/raspberry-pi-status/scripts/status.sh
+          tests/raspberry-pi-status/smoke.sh
+          tests/raspberry-pi-status/fixtures/mock-linux-bin/uname
+          tests/raspberry-pi-status/fixtures/mock-linux-bin/vcgencmd
 
       - name: Run smoke test
-        working-directory: skills/raspberry-pi-status
-        run: sh tests/smoke.sh
+        run: sh tests/raspberry-pi-status/smoke.sh

@@ -3,8 +3,8 @@
 set -eu
 
 script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
-project_dir=$(CDPATH='' cd "$script_dir/.." && pwd)
-collector=$project_dir/scripts/status.sh
+project_dir=$(CDPATH='' cd "$script_dir/../.." && pwd)
+collector=$project_dir/skills/raspberry-pi-status/scripts/status.sh
 
 if ! command -v python3 >/dev/null 2>&1; then
     printf '%s\n' "python3 is required for the development smoke test" >&2
@@ -74,7 +74,7 @@ PY
 
 # Exercise Linux-only fallbacks, JSON escaping, and vcgencmd decoding even when
 # the development host is not Linux. Kernel virtual files remain live inputs.
-mock_bin=$project_dir/tests/fixtures/mock-linux-bin
+mock_bin=$script_dir/fixtures/mock-linux-bin
 PATH="$mock_bin:$PATH" sh "$collector" >"$test_dir/mock-linux.json" 2>"$test_dir/mock-linux-stderr"
 
 if [ -s "$test_dir/mock-linux-stderr" ]; then
