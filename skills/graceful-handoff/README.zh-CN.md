@@ -6,7 +6,7 @@
 
 ## 安装
 
-此 Skill 发布到仓库后，可以通过 [Skills CLI](https://skills.sh/docs/cli) 安装：
+通过 [Skills CLI](https://skills.sh/docs/cli) 安装：
 
 ```bash
 npx skills add guangzhao-cao/skills --skill graceful-handoff

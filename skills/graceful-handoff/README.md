@@ -6,7 +6,7 @@ A lightweight Agent Skill for handing work over across sessions, models, CLI too
 
 ## Install
 
-Once this skill is published to the repository, install it with the [Skills CLI](https://skills.sh/docs/cli):
+Install it with the [Skills CLI](https://skills.sh/docs/cli):
 
 ```bash
 npx skills add guangzhao-cao/skills --skill graceful-handoff
